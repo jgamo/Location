@@ -21,17 +21,20 @@ import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListe
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private Location location;
     private final int REQUEST_LOCATION = 1;
     private GoogleApiClient googleApiClient;
+    TextView tvLat, tvLon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        tvLat = (TextView) findViewById(R.id.tv_lat);
+        tvLon = (TextView) findViewById(R.id.tv_lon);
         Button boton1 = (Button)findViewById(R.id.b_connect);
 
         boton1.setOnClickListener(new View.OnClickListener() {
@@ -58,6 +61,44 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        //processLocation();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)) {
+                // Aquí muestras confirmación explicativa al usuario
+                // por si rechazó los permisos anteriormente
+                Toast.makeText(this,"Rechazaste el permiso", Toast.LENGTH_SHORT);
+            } else {
+                ActivityCompat.requestPermissions(
+                        this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        REQUEST_LOCATION);
+            }
+        } else {
+            location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+            if (location != null) {
+                tvLat.setText(String.valueOf(location.getLatitude()));
+                tvLon.setText(String.valueOf(location.getLongitude()));
+            } else {
+                Toast.makeText(this, "Ubicación no encontrada", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Toast.makeText(this, "Fallo en la conexion", Toast.LENGTH_SHORT);
+    }
+
+    /*
+    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_LOCATION) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -75,46 +116,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 Toast.makeText(this, "Permisos no otorgados", Toast.LENGTH_SHORT).show();
             }
         }
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        //processLocation();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)) {
-                // Aquí muestras confirmación explicativa al usuario
-                // por si rechazó los permisos anteriormente
-            } else {
-                ActivityCompat.requestPermissions(
-                        this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        REQUEST_LOCATION);
-            }
-        } else {
-            location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
-            if (location != null) {
-                TextView tvLat = (TextView) findViewById(R.id.tv_lat);
-                TextView tvLon = (TextView) findViewById(R.id.tv_lon);
-                tvLat.setText(String.valueOf(location.getLatitude()));
-                tvLon.setText(String.valueOf(location.getLongitude()));
-                Log.d("best",String.valueOf(location.getLatitude()));
-                Log.d("best",String.valueOf(location.getLongitude()));
-            } else {
-                Toast.makeText(this, "Ubicación no encontrada", Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
     }
 
     public void processLocation() {
@@ -152,15 +153,19 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     private void updateLocationUI(){
-        TextView tvLat = (TextView) findViewById(R.id.tv_lat);
-        TextView tvLon = (TextView) findViewById(R.id.tv_lon);
         tvLat.setText("n"+String.valueOf(location.getLatitude()));
         tvLon.setText("n"+String.valueOf(location.getLongitude()));
         Log.d("george", String.valueOf(location.getLatitude()));
         Log.d("george", String.valueOf(location.getLongitude()));
-
     }
-/*
+
+    @Override
+    public void onLocationChanged(Location location) {
+        this.location = location;
+        Log.d("onLocationChanged", "cambiÃ³ ubicaciÃ³n");
+        updateLocationUI();
+    }
+
     @Override
     protected void onStart() {
         super.onStart();

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <TextView
         android:id="@+id/tv_title"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="Foursquare Connection Test"
+        android:text="Location Test"
         android:textSize="15dp"/>
 
     <Button
@@ -19,43 +19,20 @@
         android:text="Connect"/>
 
     <TextView
-        android:id="@+id/tv_name"
+        android:id="@+id/tv_lat"
         android:layout_below="@id/b_connect"
         android:layout_marginTop="5dp"
-        android:layout_width="fill_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text=""/>
+        android:text="latitude"/>
 
-    <EditText
-        android:id="@+id/tv_lat"
-        android:layout_below="@id/tv_name"
-        android:layout_marginTop="5dp"
-        android:layout_width="150dp"
-        android:layout_height="wrap_content"
-        android:hint="latitude"/>
-
-    <EditText
+    <TextView
         android:id="@+id/tv_lon"
-        android:layout_width="150dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/tv_name"
-        android:layout_marginTop="5dp"
-        android:layout_toRightOf="@id/tv_lat"
-        android:hint="latitude" />
-
-    <Button
-        android:id="@+id/b_go"
         android:layout_below="@id/tv_lat"
         android:layout_marginTop="5dp"
-        android:layout_width="fill_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text=" Get Nearby Places "/>
+        android:text="longitude"/>
 
-    <ListView
-        android:id="@+id/lv_places"
-        android:layout_below="@id/b_go"
-        android:layout_marginTop="5dp"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"/>
 
 </RelativeLayout>
