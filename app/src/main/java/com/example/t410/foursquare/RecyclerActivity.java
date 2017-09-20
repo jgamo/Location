@@ -10,7 +10,7 @@ import java.util.List;
 
 public class RecyclerActivity extends AppCompatActivity {
 
-    private List<RView> persons;
+    private List<RView> details;
     private RecyclerView rv;
     private String lat,lon;
     @Override
@@ -31,13 +31,13 @@ public class RecyclerActivity extends AppCompatActivity {
     }
 
     private void initializeData(){
-        persons = new ArrayList<>();
-        persons.add(new RView("Latitude", lat, R.drawable.loc));
-        persons.add(new RView("Longitude", lon, R.drawable.loc));
+        details = new ArrayList<>();
+        details.add(new RView("Latitude", lat, R.drawable.loc));
+        details.add(new RView("Longitude", lon, R.drawable.loc));
     }
 
     private void initializeAdapter(){
-        RVAdapter adapter = new RVAdapter(persons);
+        RVAdapter adapter = new RVAdapter(details);
         rv.setAdapter(adapter);
     }
 }
