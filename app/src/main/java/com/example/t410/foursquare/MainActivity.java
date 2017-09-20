@@ -1,6 +1,7 @@
 package com.example.t410.foursquare;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.support.annotation.NonNull;
@@ -81,6 +82,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             if (location != null) {
                 tvLat.setText(String.valueOf(location.getLatitude()));
                 tvLon.setText(String.valueOf(location.getLongitude()));
+                Intent act = new Intent(MainActivity.this, RecyclerActivity.class);
+                act.putExtra("latitude", String.valueOf(location.getLatitude()));
+                act.putExtra("longitude", String.valueOf(location.getLongitude()));
+                startActivity(act);
             } else {
                 Toast.makeText(this, "Ubicación no encontrada", Toast.LENGTH_LONG).show();
             }
