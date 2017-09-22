@@ -34,5 +34,12 @@
         android:layout_height="wrap_content"
         android:text="longitude"/>
 
+    <Button
+        android:id="@+id/b_login"
+        android:layout_below="@id/tv_lon"
+        android:layout_marginTop="5dp"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Lgin"/>
 
 </RelativeLayout>
