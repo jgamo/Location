@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -14,7 +15,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,8 +28,23 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.common.api.Response;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.ArrayList;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+
+import static android.R.attr.description;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
@@ -34,6 +52,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private static final int REQUEST_CODE_FSQ_TOKEN_EXCHANGE = 201; // Código de intercambio de token exitosa
     private static final String CLIENT_ID = "PF3J0MAV5W0R2H0MKLY4QM5IMAVZLE05VHY5DE4AEF1PHBNT"; // clave ID
     private static final String CLIENT_SECRET = "NZQBQIEFKIP34CA2V0XIFUF32H5NCXRCD5WA5MTZ35USFVMU"; // clave secreta
+    private static boolean found;
+    private ArrayList venuesList;
+    private ArrayAdapter myAdapter;
+
+    private OkHttpClient okHttp;
+    private Request request;
+    private String url;
 
     private Context con;
     private Location location;
@@ -43,20 +68,32 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private TextView tvLat, tvLon;
     private Button bLogin;
 
+    public static ArrayList<FQ> lista = new ArrayList<>();
+    private ListView listView;
+    private static final double LAT = 40.7142700;
+    private static final double LON = -74.0059700;
+
+    private JSONObject jo;
+
+    ArrayAdapter<String> itemsAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        listView = (ListView) findViewById(R.id.list);
+
+
         tvLat = (TextView) findViewById(R.id.tv_lat);
         tvLon = (TextView) findViewById(R.id.tv_lon);
         bLogin = (Button)findViewById(R.id.b_login);
         Button boton1 = (Button)findViewById(R.id.b_connect);
-        con= this;
+
         boton1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (compruebaConexion(con)) {
+                if (compruebaConexion(MainActivity.this)) {
                     if (googleApiClient == null) {
                         buildGoogleApiClient();
                     } else {
@@ -66,22 +103,32 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 } else {
                     Toast.makeText(getBaseContext(),"No hay conexión a Internet ", Toast.LENGTH_SHORT).show();
                 }
+                for (int i = 0; i < lista.size() ; i++) {
+                    Log.d("animal", lista.get(i).getId()+ "_"+lista.get(i).getName()+ "_"+lista.get(i).getDistance()+"_"+lista.get(i).getUrlPict()+"_"+lista.get(i).getAddress());
+                }
             }
         });
 
         bLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = FoursquareOAuth.getConnectIntent(MainActivity.this, CLIENT_ID);
-                // Si el dispositivo no tiene instalada la app de Fousquare se le va a pedir que
-                // la instale, usando un intent hacia la Play Store
-                if(FoursquareOAuth.isPlayStoreIntent(intent)){
-                    Toast.makeText(MainActivity.this, "La app no está instalada", Toast.LENGTH_SHORT).show();
-                    //startActivity(intent);
-                }else{
-                    // Si está la app instalada empieza el proceso de autenticación
-                    //Toast.makeText(MainActivity.this, "ELSEEE", Toast.LENGTH_SHORT).show();
-                    startActivityForResult(intent, REQUEST_CODE_FSQ_CONNECT);
+                if (compruebaConexion(MainActivity.this)) {
+                    if(location==null){
+                        Toast.makeText(getBaseContext(),"Obtenga la ubicacion", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Intent intent = FoursquareOAuth.getConnectIntent(MainActivity.this, CLIENT_ID);
+                        // Si el dispositivo no tiene instalada la app de Fousquare se le va a pedir que
+                        // la instale, usando un intent hacia la Play Store
+                        if (FoursquareOAuth.isPlayStoreIntent(intent)) {
+                            Toast.makeText(MainActivity.this, "La app no está instalada", Toast.LENGTH_SHORT).show();
+                            startActivity(intent);
+                        } else {
+                            // Si está la app instalada empieza el proceso de autenticacion
+                            startActivityForResult(intent, REQUEST_CODE_FSQ_CONNECT);
+                        }
+                    }
+                } else {
+                    Toast.makeText(getBaseContext(),"No hay conexión a Internet ", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -117,10 +164,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             if (location != null) {
                 tvLat.setText(String.valueOf(location.getLatitude()));
                 tvLon.setText(String.valueOf(location.getLongitude()));
-                Intent act = new Intent(MainActivity.this, RecyclerActivity.class);
-                act.putExtra("latitude", String.valueOf(location.getLatitude()));
-                act.putExtra("longitude", String.valueOf(location.getLongitude()));
-                startActivity(act);
             } else {
                 Toast.makeText(this, "Ubicación no encontrada", Toast.LENGTH_LONG).show();
             }
@@ -159,13 +202,101 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         if(exception==null){
             String accessToken = tokenResponse.getAccessToken();
             //Guardamos el token para usarlo posteriormente
-            Toast.makeText(this, "Token " + accessToken, Toast.LENGTH_SHORT).show();
-
+            //Toast.makeText(this, "Token " + accessToken, Toast.LENGTH_SHORT).show();
+            makeCall(accessToken);
             //Se hacen las siguientes operaciones
         }else{
             Toast.makeText(this, "Error " + exception.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
+
+    private void makeCall(final String accessToken) {
+        url = "https://api.foursquare.com/v2/venues/search?ll="+LAT+","+LON+"&oauth_token="+accessToken+"&v=20170922";
+
+        okHttp = new OkHttpClient();
+        request = new Request.Builder().url(url).build();
+        okHttp.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(Call call, okhttp3.Response response) throws IOException {
+                final String myResponse = response.body().string();
+                MainActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+
+                            JSONObject json = new JSONObject(myResponse);
+
+                            if (json.has("response")) {
+                                    if (json.getJSONObject("response").has("venues")) {
+                                        //found = true;
+                                        JSONArray jsonArray = json.getJSONObject("response").getJSONArray("venues");
+                                        String url;
+                                        for (int i = 0; i < jsonArray.length(); i++) {
+                                            lista.add(new FQ(jsonArray.getJSONObject(i).getString("id"), jsonArray.getJSONObject(i).getString("name"),
+                                                    jsonArray.getJSONObject(i).getJSONObject("location").getInt("distance"),
+                                                    jsonArray.getJSONObject(i).getJSONObject("location").getString("address")));
+                                            getUrl(lista.get(i).getId(),accessToken, i);
+                                        }
+
+                                    }
+                            } else {
+                                Toast.makeText(getApplicationContext(), "No se encontraron lugares", Toast.LENGTH_SHORT).show();
+                            }
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+                //if(found==true) {
+                    Intent act = new Intent(MainActivity.this, RecyclerActivity.class);
+                    startActivity(act);
+                //}
+            }
+        });
+    }
+
+    private void getUrl(String id, String accessToken, final int indice) {
+        url = "https://api.foursquare.com/v2/venues/"+id+"/photos/?oauth_token="+accessToken+"&v=20170922";
+
+        okHttp = new OkHttpClient();
+        request = new Request.Builder().url(url).build();
+        okHttp.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(Call call, okhttp3.Response response) throws IOException {
+                final String myResponse = response.body().string();
+                MainActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+
+                            JSONObject json = new JSONObject(myResponse);
+
+                            JSONArray jsonArray = json.getJSONObject("response").getJSONObject("photos").getJSONArray("items");
+                            String prefix = jsonArray.getJSONObject(0).getString("prefix");
+                            String sufix = jsonArray.getJSONObject(0).getString("suffix");
+                            int width = jsonArray.getJSONObject(0).getInt("width");
+                            int height = jsonArray.getJSONObject(0).getInt("height");
+                            lista.get(indice).setUrlPict(prefix+width+"x"+height+sufix);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
+        });
+    }
+
 
     private void onCompleteConnect(int resultCode, Intent data) {
         AuthCodeResponse codeResponse = FoursquareOAuth.getAuthCodeFromResult(resultCode, data);
@@ -175,7 +306,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 // y se llama la función para hacer el intercambio
             String code = codeResponse.getCode();
             performTokenExchange(code);
-            Toast.makeText(this, "Entre 1 " + exception.getMessage(), Toast.LENGTH_SHORT).show();
         } else {
                 Toast.makeText(this, "Error 2" + exception.getMessage(), Toast.LENGTH_SHORT).show();
         }
@@ -205,6 +335,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
         return connected;
     }
+
     /*
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

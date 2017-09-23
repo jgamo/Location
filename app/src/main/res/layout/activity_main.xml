@@ -42,4 +42,11 @@
         android:layout_height="wrap_content"
         android:text="Lgin"/>
 
-</RelativeLayout>
+    <ListView
+        android:id="@+id/list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/b_login"></ListView>
+
+
+    </RelativeLayout>

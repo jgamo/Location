@@ -4,6 +4,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,16 +19,21 @@ public class RecyclerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.recyclerview_activity);
-
-        //Bundle datos = this.getIntent().getExtras();
+        Log.d("animal", "entree");
+        /*Bundle datos = this.getIntent().getExtras();
         lat = getIntent().getStringExtra("latitude");
-        lon = getIntent().getStringExtra("longitude");
+        lon = getIntent().getStringExtra("longitude");*/
+
         rv=(RecyclerView)findViewById(R.id.rv);
         LinearLayoutManager llm = new LinearLayoutManager(this);
         rv.setLayoutManager(llm);
         rv.setHasFixedSize(true);
-
-        initializeData();
+        Log.d("animal",String.valueOf(MainActivity.lista.size()));
+        for (int i = 0; i < MainActivity.lista.size() ; i++) {
+            Log.d("animal", "hi bitch"+MainActivity.lista.get(i).getId()+ "_"
+                    +MainActivity.lista.get(i).getName());
+        }
+        //initializeData();
         initializeAdapter();
     }
 
@@ -37,7 +44,7 @@ public class RecyclerActivity extends AppCompatActivity {
     }
 
     private void initializeAdapter(){
-        RVAdapter adapter = new RVAdapter(details);
+        RVAdapter adapter = new RVAdapter(com.example.t410.foursquare.MainActivity.lista,this);
         rv.setAdapter(adapter);
     }
 }

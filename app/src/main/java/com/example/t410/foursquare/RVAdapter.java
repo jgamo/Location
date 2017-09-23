@@ -1,5 +1,6 @@
 package com.example.t410.foursquare;
 
+import android.content.Context;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -8,6 +9,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,11 +19,13 @@ import java.util.List;
  */
 
 public class RVAdapter extends RecyclerView.Adapter<RVAdapter.PersonViewHolder>{
+    private Context context;
 
-    List<RView> persons;
+    ArrayList<FQ> persons;
 
-    RVAdapter(List<RView> persons){
+    public RVAdapter(ArrayList<FQ> persons, Context context){
         this.persons = persons;
+        this.context = context;
     }
 
     @Override
@@ -30,10 +36,20 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.PersonViewHolder>{
     }
 
     @Override
-    public void onBindViewHolder(PersonViewHolder holder, int i) {
-        holder.personName.setText(persons.get(i).location);
-        holder.personAge.setText(persons.get(i).cord);
-        holder.personPhoto.setImageResource(persons.get(i).photoId);
+    public void onBindViewHolder(PersonViewHolder holder, int position) {
+        holder.personName.setText(persons.get(position).getName());
+        holder.personAge.setText(persons.get(position).getAddress());
+        //ImageView imagen = (ImageView) v.findViewById(R.id.imagenItem);
+        if (persons.get(position).getUrlPict()!=null) {
+            Glide.with(context)
+                    .load(persons.get(position).getUrlPict())
+                    .crossFade()
+                    .centerCrop()
+                    .into(holder.personPhoto);
+            // holder.personPhoto.setImageResource(persons.get(i).photoId);
+        } else {
+            holder.personPhoto.setImageResource(R.drawable.loc);
+        }
     }
 
     @Override
