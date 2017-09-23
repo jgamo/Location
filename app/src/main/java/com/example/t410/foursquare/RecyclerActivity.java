@@ -26,10 +26,6 @@ public class RecyclerActivity extends AppCompatActivity {
         LinearLayoutManager llm = new LinearLayoutManager(this);
         rv.setLayoutManager(llm);
         rv.setHasFixedSize(true);
-        /*Log.d("animal",String.valueOf(MainActivity.lista.size()));
-        for (int i = 0; i < MainActivity.lista.size() ; i++) {
-            Log.d("animal", MainActivity.lista.get(i).getId()+ "_"+MainActivity.lista.get(i).getName()+ "_"+MainActivity.lista.get(i).getDistance()+"_"+MainActivity.lista.get(i).getUrlPict()+"_"+MainActivity.lista.get(i).getAddress());
-        }*/
         initializeAdapter();
     }
 
