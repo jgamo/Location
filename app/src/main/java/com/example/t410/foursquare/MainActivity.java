@@ -53,8 +53,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private static final String CLIENT_ID = "PF3J0MAV5W0R2H0MKLY4QM5IMAVZLE05VHY5DE4AEF1PHBNT"; // clave ID
     private static final String CLIENT_SECRET = "NZQBQIEFKIP34CA2V0XIFUF32H5NCXRCD5WA5MTZ35USFVMU"; // clave secreta
     private static boolean found;
-    private ArrayList venuesList;
-    private ArrayAdapter myAdapter;
 
     private OkHttpClient okHttp;
     private Request request;
@@ -70,12 +68,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     public static ArrayList<FQ> lista = new ArrayList<>();
     private ListView listView;
-    private static final double LAT = 40.7142700;
-    private static final double LON = -74.0059700;
-
-    private JSONObject jo;
-
-    ArrayAdapter<String> itemsAdapter;
+    private static final double LAT = 40.7142700; // Ubicacion centro New York
+    private static final double LON = -74.0059700;// Ubicacion centro New York
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -208,7 +202,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     private void makeCall(final String accessToken) {
-        url = "https://api.foursquare.com/v2/venues/search?ll="+LAT+","+LON+"&oauth_token="+accessToken+"&v=20170922";
+        url = "https://api.foursquare.com/v2/venues/search?ll="+String.valueOf(location.getLatitude())+
+                ","+String.valueOf(location.getLongitude())+"&oauth_token="+accessToken+"&v=20170922";
 
         okHttp = new OkHttpClient();
         request = new Request.Builder().url(url).build();
@@ -299,8 +294,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         AuthCodeResponse codeResponse = FoursquareOAuth.getAuthCodeFromResult(resultCode, data);
         Exception exception = codeResponse.getException();
         if (exception == null) {
-// Si no hay excepción se obtiene el código para cambiarlo por un token
-// y se llama la función para hacer el intercambio
+            // Si no hay excepción se obtiene el código para cambiarlo por un token
+            // y se llama la función para hacer el intercambio
             String code = codeResponse.getCode();
             performTokenExchange(code);
         } else {
@@ -332,85 +327,4 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
         return connected;
     }
-
-    /*
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_LOCATION) {
-            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                try {
-                    location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
-                }catch (SecurityException e) {
-                    // lets the user know there is a problem with the gps
-                }
-                if (location != null) {
-                    updateLocationUI();
-                } else {
-                    Toast.makeText(this, "Ubicacion no encontrada", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                Toast.makeText(this, "Permisos no otorgados", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    public void processLocation() {
-
-        getLocation();
-        if (location != null) {
-            updateLocationUI();
-        }
-    }
-
-    private void getLocation() {
-        if (isLocationPermissionGranted()) {
-            try {
-                location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
-            } catch (SecurityException e) {
-                 // lets the user know there is a problem with the gps
-            }
-        } else {
-            requestPermission();
-        }
-    }
-
-    private boolean isLocationPermissionGranted(){
-        int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
-        return permission == PackageManager.PERMISSION_GRANTED;
-    }
-
-
-    private void requestPermission() {
-        if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)){
-            Toast.makeText(this,"No quisiste dar accesso a tu ubicacion", Toast.LENGTH_SHORT).show();
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},REQUEST_LOCATION);
-        }
-    }
-
-    private void updateLocationUI(){
-        tvLat.setText("n"+String.valueOf(location.getLatitude()));
-        tvLon.setText("n"+String.valueOf(location.getLongitude()));
-        Log.d("george", String.valueOf(location.getLatitude()));
-        Log.d("george", String.valueOf(location.getLongitude()));
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        this.location = location;
-        Log.d("onLocationChanged", "cambiÃ³ ubicaciÃ³n");
-        updateLocationUI();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        googleApiClient.connect();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        googleApiClient.disconnect();
-    }*/
 }
