@@ -5,13 +5,15 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class RecyclerActivity extends AppCompatActivity {
-
+    private RecyclerViewClickListener listener;
     private List<RView> details;
     private RecyclerView rv;
     private String lat,lon;
@@ -30,21 +32,18 @@ public class RecyclerActivity extends AppCompatActivity {
         rv.setHasFixedSize(true);
         Log.d("animal",String.valueOf(MainActivity.lista.size()));
         for (int i = 0; i < MainActivity.lista.size() ; i++) {
-            Log.d("animal", "hi bitch"+MainActivity.lista.get(i).getId()+ "_"
-                    +MainActivity.lista.get(i).getName());
+            Log.d("animal", MainActivity.lista.get(i).getId()+ "_"+MainActivity.lista.get(i).getName()+ "_"+MainActivity.lista.get(i).getDistance()+"_"+MainActivity.lista.get(i).getUrlPict()+"_"+MainActivity.lista.get(i).getAddress());
         }
-        //initializeData();
         initializeAdapter();
     }
 
-    private void initializeData(){
-        details = new ArrayList<>();
-        details.add(new RView("Latitude", lat, R.drawable.loc));
-        details.add(new RView("Longitude", lon, R.drawable.loc));
-    }
-
     private void initializeAdapter(){
-        RVAdapter adapter = new RVAdapter(com.example.t410.foursquare.MainActivity.lista,this);
+        RVAdapter adapter = new RVAdapter(com.example.t410.foursquare.MainActivity.lista,this, new RecyclerViewClickListener() {
+            @Override
+            public void onClick(View view, int position) {
+                Toast.makeText(RecyclerActivity.this, "Elemento " + position, Toast.LENGTH_SHORT).show();
+            }
+        });
         rv.setAdapter(adapter);
     }
 }

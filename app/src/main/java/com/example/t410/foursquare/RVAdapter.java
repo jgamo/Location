@@ -20,19 +20,21 @@ import java.util.List;
 
 public class RVAdapter extends RecyclerView.Adapter<RVAdapter.PersonViewHolder>{
     private Context context;
+    private RecyclerViewClickListener listener;
 
     ArrayList<FQ> persons;
 
-    public RVAdapter(ArrayList<FQ> persons, Context context){
+    public RVAdapter(ArrayList<FQ> persons, Context context, RecyclerViewClickListener listener){
         this.persons = persons;
         this.context = context;
+        this.listener = listener;
     }
 
     @Override
     public PersonViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
         View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.item, viewGroup, false);
         PersonViewHolder pvh = new PersonViewHolder(v);
-        return pvh;
+        return new RowViewHolder(v, listener);
     }
 
     @Override

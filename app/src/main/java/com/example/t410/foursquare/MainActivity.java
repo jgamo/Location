@@ -103,9 +103,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 } else {
                     Toast.makeText(getBaseContext(),"No hay conexión a Internet ", Toast.LENGTH_SHORT).show();
                 }
-                for (int i = 0; i < lista.size() ; i++) {
-                    Log.d("animal", lista.get(i).getId()+ "_"+lista.get(i).getName()+ "_"+lista.get(i).getDistance()+"_"+lista.get(i).getUrlPict()+"_"+lista.get(i).getAddress());
-                }
             }
         });
 
