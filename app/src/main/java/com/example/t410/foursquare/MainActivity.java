@@ -194,6 +194,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             String accessToken = tokenResponse.getAccessToken();
             //Guardamos el token para usarlo posteriormente
             //Toast.makeText(this, "Token " + accessToken, Toast.LENGTH_SHORT).show();
+            lista = new ArrayList<>();
             makeCall(accessToken);
             //Se hacen las siguientes operaciones
         }else{
