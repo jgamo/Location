@@ -9,7 +9,7 @@ public class FQ {
     private String name;
     private String urlPict;
     private String address;
-    private int distance;
+    private String distance;
 
     public String getAddress() {
         return address;
@@ -24,7 +24,7 @@ public class FQ {
         this.urlPict = url;
     }
 
-    public FQ(String id, String name, int distance, String add) {
+    public FQ(String id, String name, String distance, String add) {
         this.id = id;
         this.name = name;
         this.distance = distance;
@@ -39,11 +39,11 @@ public class FQ {
         this.id = id;
     }
 
-    public int getDistance() {
+    public String getDistance() {
         return distance;
     }
 
-    public void setDistance(int distance) {
+    public void setDistance(String distance) {
         this.distance = distance;
     }
 

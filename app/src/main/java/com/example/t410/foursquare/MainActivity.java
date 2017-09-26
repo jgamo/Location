@@ -8,6 +8,7 @@ import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -77,7 +78,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         setContentView(R.layout.activity_main);
 
         listView = (ListView) findViewById(R.id.list);
-
 
         tvLat = (TextView) findViewById(R.id.tv_lat);
         tvLon = (TextView) findViewById(R.id.tv_lon);
@@ -197,14 +197,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             lista = new ArrayList<>();
             makeCall(accessToken);
             //Se hacen las siguientes operaciones
-        }else{
+        }else {
             Toast.makeText(this, "Error " + exception.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
     private void makeCall(final String accessToken) {
         url = "https://api.foursquare.com/v2/venues/search?ll="+String.valueOf(location.getLatitude())+
-                ","+String.valueOf(location.getLongitude())+"&oauth_token="+accessToken+"&v=20170922";
+                ","+String.valueOf(location.getLongitude())+"&oauth_token="+accessToken+"&v=20170926";
 
         okHttp = new OkHttpClient();
         request = new Request.Builder().url(url).build();
@@ -221,41 +221,45 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     @Override
                     public void run() {
                         try {
-
                             JSONObject json = new JSONObject(myResponse);
-
                             if (json.has("response")) {
-                                    if (json.getJSONObject("response").has("venues")) {
-                                        //found = true;
+                                    if (json.getJSONObject("response").getJSONArray("venues").length()>0) {
                                         JSONArray jsonArray = json.getJSONObject("response").getJSONArray("venues");
-                                        String url;
+                                        String id, name, distance, address;
                                         for (int i = 0; i < jsonArray.length(); i++) {
+                                            if(jsonArray.getJSONObject(i).getJSONObject("location").has("distance")){
+                                                distance = jsonArray.getJSONObject(i).getJSONObject("location").getString("distance");
+                                            } else {
+                                                distance="Distance not found";
+                                            }
+                                            if(jsonArray.getJSONObject(i).getJSONObject("location").has("address")){
+                                                address = jsonArray.getJSONObject(i).getJSONObject("location").getString("address");
+                                            } else{
+                                                address="Address not found";
+                                            }
                                             lista.add(new FQ(jsonArray.getJSONObject(i).getString("id"), jsonArray.getJSONObject(i).getString("name"),
-                                                    jsonArray.getJSONObject(i).getJSONObject("location").getInt("distance"),
-                                                    jsonArray.getJSONObject(i).getJSONObject("location").getString("address")));
+                                                distance, address));
                                             getUrl(lista.get(i).getId(),accessToken, i);
                                         }
-
+                                        SystemClock.sleep(2000); // ponemos a dormir el hilo para dar tiempo
+                                        //a que se terminen de cargar las urls que estaban en otros hilos
+                                        Intent act = new Intent(MainActivity.this, RecyclerActivity.class);
+                                        startActivity(act);
+                                    }else{
+                                        Toast.makeText(getApplicationContext(), "No se encontraron lugares", Toast.LENGTH_SHORT).show();
                                     }
-                            } else {
-                                Toast.makeText(getApplicationContext(), "No se encontraron lugares", Toast.LENGTH_SHORT).show();
                             }
-
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
                     }
                 });
-                //if(found==true) {
-                    Intent act = new Intent(MainActivity.this, RecyclerActivity.class);
-                    startActivity(act);
-                //}
             }
         });
     }
 
     private void getUrl(String id, String accessToken, final int indice) {
-        url = "https://api.foursquare.com/v2/venues/"+id+"/photos/?oauth_token="+accessToken+"&v=20170922";
+        url = "https://api.foursquare.com/v2/venues/"+id+"/photos/?oauth_token="+accessToken+"&v=20170926";
 
         okHttp = new OkHttpClient();
         request = new Request.Builder().url(url).build();
@@ -272,9 +276,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     @Override
                     public void run() {
                         try {
-
                             JSONObject json = new JSONObject(myResponse);
-
                             JSONArray jsonArray = json.getJSONObject("response").getJSONObject("photos").getJSONArray("items");
                             String prefix = jsonArray.getJSONObject(0).getString("prefix");
                             String sufix = jsonArray.getJSONObject(0).getString("suffix");
